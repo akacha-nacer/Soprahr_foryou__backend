@@ -1,0 +1,168 @@
+@startuml
+package "Module Embauche" {
+
+  ' Entité principale : Employe
+  class Employe {
+    -String matricule
+    -Date dateRecrutement
+    -String codeSociete
+    -String etablissement
+    +getMatricule(): String
+    +setMatricule(String): void
+  }
+
+  ' Renseignements individuels
+  class Identite {
+    -String qualite
+    -String nomUsuel
+    -String nomPatronymique
+    -String prenom
+    -String deuxiemePrenom
+    -String sexe
+    -String numeroINSEE
+  }
+
+  class Naissance {
+    -Date dateNaissance
+    -String villeNaissance
+    -String departementNaissance
+    -String paysNaissance
+  }
+
+  class Nationalite {
+    -String pays
+    -Boolean estPrincipal
+  }
+
+  class SituationFamiliale {
+    -String etat
+    -Date dateEffet
+  }
+
+  ' Adresse
+  class Adresse {
+    -String pays
+    -String typeAdresse
+    -Boolean adressePrincipale
+    -Date debutValidite
+    -Date finValidite
+    -String voieNumero
+    -String natureNomVoie
+    -String complementAdresse1
+    -String complementAdresse2
+    -String lieuDit
+    -String codePostal
+    -String commune
+    -String codeINSEECommune
+  }
+
+  ' Affectations
+  class Entree {
+    -String categorieEntree
+    -String motifEntree
+  }
+
+  class Affectation {
+    -String poste
+    -String emploi
+    -String uniteOrganisationnelle
+  }
+
+  class Calendrier {
+    -String calendrierPaie
+  }
+
+  class CycleTravail {
+    -String code
+    -int indexe
+    -String modaliteGestionTemps
+  }
+
+  ' Carrière
+  class SuiviConventionnel {
+    -String conventionCollective
+    -String accordEntreprise
+    -String qualification
+    -String typePaie
+  }
+
+  class RegimeSpecial {
+    -String regime
+  }
+
+  class Contrat {
+    -String nature
+    -String type
+    -String duree
+    -Date dateFinPrevue
+    -Date dateDebutEssai
+    -Date dateFinEssai
+  }
+
+  class TempsContractuel {
+    -String type
+    -String modaliteHoraire
+    -Boolean cadreForfaitJours
+    -int forfaitAnnuelHeures
+    -Boolean surcotisation
+    -float heuresTravailleesJour
+    -float heuresTravailleesSemaine
+    -float heuresTravailleesMois
+    -float pourcentageTempsPlein
+    -float heuresPayeesJour
+    -float heuresPayeesSemaine
+    -float heuresPayeesMois
+  }
+
+  class Apprentissage {
+    -Date dateDebutApprentissage
+  }
+
+  ' Confirmation
+  class Confirmation {
+    -String compteRenduMiseAJour
+    -List<String> logsAnomalies
+  }
+
+  ' Relations
+  Employe "1" --> "1" Identite
+  Employe "1" --> "1" Naissance
+  Employe "1" --> "1" Nationalite
+  Employe "1" --> "1" SituationFamiliale
+  Employe "1" --> "*" Adresse
+  Employe "1" --> "1" Entree
+  Employe "1" --> "1" Affectation
+  Employe "1" --> "1" Calendrier
+  Employe "1" --> "*" CycleTravail
+  Employe "1" --> "1" SuiviConventionnel
+  Employe "1" --> "1" RegimeSpecial
+  Employe "1" --> "1" Contrat
+  Employe "1" --> "1" TempsContractuel
+  Employe "1" --> "0..1" Apprentissage
+  Employe "1" --> "1" Confirmation
+
+  ' Façade pour simplifier l'accès
+  class EmbaucheFacade {
+    +creerEmploye(): Employe
+    +validerFormulaire(Employe): Confirmation
+    +enregistrerEmploye(Employe): void
+  }
+
+  ' Builder pour construire Employe
+  class EmployeBuilder {
+    -Employe employe
+    +withIdentite(Identite): EmployeBuilder
+    +withNaissance(Naissance): EmployeBuilder
+    +withAdresse(Adresse): EmployeBuilder
+    +build(): Employe
+  }
+
+  ' Repository pour la persistance
+  interface EmployeRepository {
+    +save(Employe): void
+    +findByMatricule(String): Employe
+  }
+
+}
+
+@enduml
