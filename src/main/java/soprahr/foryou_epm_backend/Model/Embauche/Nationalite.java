@@ -16,6 +16,7 @@ public class Nationalite {
     private Long id;
 
     private String pays;
+    private Boolean natPrincipale;
 
     @ManyToOne
     @JoinColumn(name = "renseignements_id")
