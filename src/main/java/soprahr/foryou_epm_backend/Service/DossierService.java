@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import soprahr.foryou_epm_backend.Model.DTO.DossierDTO;
 import soprahr.foryou_epm_backend.Model.Embauche.*;
-import soprahr.foryou_epm_backend.Repository.*;
+import soprahr.foryou_epm_backend.Repository.EmbaucheRepos.*;
 
 @Service
 public class DossierService {

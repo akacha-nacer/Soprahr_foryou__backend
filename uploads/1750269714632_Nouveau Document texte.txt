@@ -1,0 +1,168 @@
+Démarche "Ma journée"
+Présentation
+La démarche "Ma journée" propose au collaborateur une synthèse des informations d'une journée liées à la Gestion des temps et des activités. 
+
+Ces informations sont regroupées dans des sections. Les sections, leur ordre d'affichage et leur ouverture par défaut sont paramétrables.
+
+Afin de faciliter la mise à jour de ses informations, le collaborateur peut effectuer directement ces mises à jour via des boutons de commande présents dans certaines sections.
+
+Par exemple, il peut :
+
+corriger ses pointages d’une journée ou ajouter un pointage en accédant directement à la démarche "Mes régularisations de pointage" 
+consulter ses congés ou poser un congé en accédant directement à la démarche "Mes congés"
+modifier, ajouter ou supprimer une nature d'heures
+corriger une anomalie
+Le multi-contrats n'est pas géré en standard dans cette version. Le contrat s'affiche dans les popup des sections où il est présent.
+
+Accès à la démarche
+Le collaborateur accède à la démarche :
+
+via la liste des démarches de la page d'accueil
+via "Mes démarches" du menu, dans la catégorie "Mon temps de travail" du volet Collaborateur 
+La démarche « Ma journée » est aussi suggérée au collaborateur depuis la démarche « Mon Planning hebdomadaire ».
+
+
+
+
+
+Les sections
+Par défaut, l'ordre d'affichage des sections est le suivant : Mes références horaires, Mes anomalies, Mes compteurs, Mes natures d’heures, Mes pointages, Mes absences, Mes primes, Mes imputations.
+
+Si une section est vide cela signifie qu’elle ne contient aucune donnée. Dans chaque section vide, un message précise au collaborateur « Vous n’avez aucun pointage dans cette section », "Vous n'avez aucune absence", " Vous n'avez aucune anomalie", etc.
+
+Mes références horaires 
+La section « Mes références horaires »  affiche les plages horaires de la journée sous la forme d'une timeline. Le collaborateur retrouve la timeline de la démarche "Mes régularisations de pointage".
+
+La timeline affiche les plages horaires, les pointages sous forme de triangle dans les 2 sens Entrée et Sortie ainsi que des infobulles pour afficher les valeurs exactes.
+
+
+
+La présence d'anomalies sur la journée est marquée par un triangle rouge devant la timeline dès lors qu’une anomalie est présente. Lorsque le collaborateur clique sur le triangle rouge, il est positionné automatiquement sur la section "Mes anomalies" ouverte. 
+
+
+
+Mes anomalies
+La section « Mes anomalies »  affiche les anomalies GTA et les anomalies de compteurs.
+
+Sur chaque anomalie, le collaborateur dispose de 3 boutons qui lui permettent d'agir à son initiative :
+
+soit sur la démarche « Mes congés »
+soit sur la démarche « Mes régularisations de pointage »  
+soit sur la section « Mes nature d’heures » 
+
+
+Mes pointages
+La section "Mes pointages" s'affiche uniquement pour les collaborateurs GTA, soumis au pointage.
+
+Sur chaque pointage, le collaborateur dispose d'un bouton qui lui permet d'aller vers la démarche "Mes régularisations de pointage" pour modifier ou supprimer le pointage.
+
+
+
+Mes absences
+La section "Mes absences" affiche les absences de gestion du collaborateur. Il peut consulter le détail d'une absence en cliquant sur la loupe.
+
+
+
+Mes compteurs
+La section "Mes compteurs" affiche les compteurs visibles par le collaborateur.
+
+La configuration des compteurs permet :
+
+le Classement des compteurs selon un ordre défini par configuration. Il n’y aura pas de retour au classement par défaut si l’utilisateur trie manuellement sur les colonnes car 4YOU ne gère pas les préférences utilisateur à ce jour.
+l'affichage des compteurs visibles au collaborateur et au manager ou uniquement au manager
+
+le collaborateur peut voir certains compteurs
+
+le manager pourra voir tous les compteurs de ces collaborateurs.
+
+l'unité du compteur. 
+L’unité n’existant pas dans HR Access, l'unité Durée est décrite en Heures et définie par défaut pour tous les compteurs.
+L’unité existant dans Pléiades, c'est l'unité du legacy Pléiades qui est utilisée.
+Mes natures d'heures
+La section "Mes natures d'heures" permet au collaborateur d'accéder au détail des informations sur une nature d’heures. Il peut consulter les commentaires en cliquant sur le symbole de la loupe.
+
+
+
+
+
+La configuration des natures d’heures permet de préciser :
+
+si la modification, la suppression, la consultation d'une nature d'heures sont autorisées ou pas pour le manager et/ou le collaborateur
+En standard, on applique les droits d’édition configurés dans HRa puis les actions autorisées dans le fichier de configuration de 4YOU (Ajouter, Modifier et Supprimer) 
+Les natures d’heures configurées ne sont ni modifiables ni supprimables par le collaborateur. Elles sont modifiables ou supprimables uniquement par le manager.
+si une nature d’heures est à validation manager ou pas. 
+En standard, les natures d’heures configurées sont à validation manager.  
+En fonction la configuration, le collaborateur pourra ajouter, modifier et/ou supprimer une nature d'heures en utilisant les boutons d'actions :
+
+  
+
+Ajouter une nature d'heures
+Le collaborateur peut ajouter une nature d’heures  en cliquant sur le bouton "Ajouter une nature d'heures", s'il est autorisé à créer une nature d'heures. Il complète dans la popup en sélectionnant la nature d'heures à ajouter, en renseignant les heures de début et de fin, en ajoutant des commentaires si besoin. La durée sera calculée automatiquement.
+
+
+
+Un message de confirmation demande au collaborateur de confirmer l'ajout d'une nouvelle nature d'heures. Le collaborateur reçoit en retour un immediat feedback confirmant que sa demande est envoyée au manager pour validation, dans le cas où la nature d'heures est configurée avec validation Manager.
+
+
+
+
+
+Après validation du manager la nature d'heures est ajoutée dans la section "Mes natures d'heures" de la démarche "Ma journée".
+
+
+
+Modifier une nature d'heures
+Le collaborateur peut modifier une nature d’heures afin de compléter ses données GTA en cliquant sur le symbole du crayon, s'il est autorisé à modifier la nature d'heures.
+
+La popup "Modifier une nature d'heures" lui permet de modifier l'heure de début, l'heure de fin et d'ajouter des commentaires. le champ « nature d’heures « n’est pas modifiable.
+
+Il clique ensuite sur le bouton "Enregistrer" pour sauvegarder sa saisie, puis sur le bouton "Envoyer" pour envoyer sa demande de modification d'une nature d'heures à son manager pour validation si la modification de cette nature d'heures est configurée à validation manager.
+
+  
+
+
+
+
+
+Supprimer une nature d'heures
+Le collaborateur peut supprimer une nature d’heures en cliquant sur le symbole , s'il est autorisé à supprimer la nature d'heures.
+
+la popup "Supprimer une nature d'heures" affiche le détail de la nature d'heures. Il clique sur le bouton "Enregistrer" pour acter la suppression de la nature d'heures, puis sur le bouton "Envoyer" pour envoyer sa demande de suppression d'une nature d'heures à son manager pour validation si la suppression de cette nature d'heures est configurée à validation manager.
+
+Après la suppression, un message de confirmation de la suppression d’une nature d’heures  s'affiche : « Confirmez-vous la suppression de la nature d’heures « libellé de la nature d’heures » du date de création de la demande au format JJ/MM/AAAA ? ».
+
+
+
+
+
+Validation des demandes de mises à jour des natures d'heures par le manager
+Dans l'inbox Manager, les demandes de validation de natures d'heures sont regroupées dans la catégorie « Ma journée/Régularisations de nature d'heures".
+
+les demandes d’ajout, de modification et de suppression de nature d’heures sont validées ou refusées par le manager, pour les nature d’heures configurées avec validation manager.
+le manager pourra en cliquant sur le bouton « + détails » afficher le détail de la demande d’ajout, modification ou suppression. Il pourra ajouter un commentaire si besoin. Le commentaire reste obligatoire en cas de refus de la demande.
+pour l’ajout, la modification et la suppression d’une nature configurée sans validation manager, le dossier du collaborateur sera mis à jour directement.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mes primes
+La section "Mes primes" affiche au collaborateur ses primes.
+
+Mes imputations
+La section "Mes imputations" affiche au collaborateur ses imputations.
+
+Suggestions
+Les démarches "Mes congés" et "Mes régularisations de pointage" sont proposées au collaborateur s'il souhaite poser un congé ou corriger un pointage depuis cette démarche.

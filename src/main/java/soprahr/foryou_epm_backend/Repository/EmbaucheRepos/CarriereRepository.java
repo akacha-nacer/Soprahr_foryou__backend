@@ -1,4 +1,4 @@
-package soprahr.foryou_epm_backend.Repository;
+package soprahr.foryou_epm_backend.Repository.EmbaucheRepos;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
