@@ -16,11 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/maladie")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS}, allowedHeaders = "*")
 public class MaladieController {
 
     private final MaladieService maladieService;
@@ -29,15 +31,27 @@ public class MaladieController {
     private String uploadDir;
 
     @PostMapping("/notify")
-    public ResponseEntity<String> saveNotification(@RequestBody Notification notification) {
-        maladieService.saveNotification(notification);
-        return ResponseEntity.ok("Notification saved successfully");
+    public ResponseEntity<Notification> saveNotification(
+            @RequestBody Notification notification,
+            @RequestParam("employeeId") Long employeeId) {
+        Notification savedNotification = maladieService.saveNotification(notification, employeeId);
+        return ResponseEntity.ok(savedNotification);
     }
 
     @PostMapping("/declare")
-    public ResponseEntity<String> saveAbsenceDeclaration(@RequestBody AbsenceDeclaration absenceDeclaration) {
-        maladieService.saveAbsenceDeclaration(absenceDeclaration);
-        return ResponseEntity.ok("Absence declaration saved successfully");
+    public ResponseEntity<AbsenceDeclaration> saveAbsenceDeclaration(
+            @RequestBody AbsenceDeclaration absenceDeclaration,
+            @RequestParam("employeeId") Long employeeId,
+            @RequestParam(value = "notificationId", required = false) Long notificationId) {
+        if (notificationId == null) {
+            Optional<Notification> activeNotification = maladieService.getActiveNotification(employeeId);
+            if (activeNotification.isEmpty()) {
+                throw new IllegalStateException("No active notification found. Please create one first.");
+            }
+            notificationId = activeNotification.get().getId();
+        }
+        AbsenceDeclaration savedAbsence = maladieService.saveAbsenceDeclaration(absenceDeclaration, employeeId, notificationId);
+        return ResponseEntity.ok(savedAbsence);
     }
 
     @PostMapping("/justify")
@@ -45,22 +59,15 @@ public class MaladieController {
             @RequestParam("justificatif") MultipartFile justificatif,
             @RequestParam("originalDepose") boolean originalDepose,
             @RequestParam("accidentTravail") boolean accidentTravail,
-            @RequestParam(value = "dateAccident", required = false) String dateAccident) throws IOException {
-
-
+            @RequestParam(value = "dateAccident", required = false) String dateAccident,
+            @RequestParam("absenceDeclarationId") Long absenceDeclarationId) throws IOException {
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-
-
         String fileName = System.currentTimeMillis() + "_" + justificatif.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
-
-
         justificatif.transferTo(filePath.toFile());
-
-
         Justification justification = new Justification();
         justification.setJustificatifFileName(fileName);
         justification.setOriginalDepose(originalDepose);
@@ -68,11 +75,28 @@ public class MaladieController {
         if (dateAccident != null && !dateAccident.isEmpty()) {
             justification.setDateAccident(LocalDate.parse(dateAccident));
         }
-
-
-        maladieService.saveJustification(justification);
-
-
+        maladieService.saveJustification(justification, absenceDeclarationId);
         return ResponseEntity.ok("Justification saved successfully. File: " + fileName);
+    }
+
+    @PostMapping("/close")
+    public ResponseEntity<String> closeSickLeave(@RequestParam("employeeId") Long employeeId) {
+        maladieService.closeSickLeave(employeeId);
+        return ResponseEntity.ok("Sick leave process closed successfully");
+    }
+
+    @GetMapping("/notifications/active")
+    public ResponseEntity<Optional<Notification>> getActiveNotification(@RequestParam("employeeId") Long employeeId) {
+        return ResponseEntity.ok(maladieService.getActiveNotification(employeeId));
+    }
+
+    @GetMapping("/declaration/active")
+    public ResponseEntity<Optional<AbsenceDeclaration>> getActiveDeclaration(@RequestParam("employeeId") Long employeeId) {
+        return ResponseEntity.ok(maladieService.getActiveDeclaration(employeeId));
+    }
+
+    @GetMapping("/notifications/manager")
+    public ResponseEntity<List<Notification>> getNotificationsForManager(@RequestParam("managerId") Long managerId) {
+        return ResponseEntity.ok(maladieService.getNotificationsForManager(managerId));
     }
 }

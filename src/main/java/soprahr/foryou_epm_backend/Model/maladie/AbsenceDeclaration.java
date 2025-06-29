@@ -1,12 +1,11 @@
 package soprahr.foryou_epm_backend.Model.maladie;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import soprahr.foryou_epm_backend.Model.User;
 
 import java.time.LocalDate;
 
@@ -22,4 +21,15 @@ public class AbsenceDeclaration {
     private boolean isProlongation;
     private LocalDate dateDebut;
     private LocalDate dateFin;
+    private boolean cloturee = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @JoinColumn(name = "employee_id", nullable = false)
+    private User employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @JoinColumn(name = "notification_id", nullable = false)
+    private Notification notification;
 }

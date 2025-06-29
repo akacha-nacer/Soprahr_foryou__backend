@@ -1,12 +1,9 @@
 package soprahr.foryou_epm_backend.Model.maladie;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 
@@ -23,4 +20,8 @@ public class Justification {
     private boolean originalDepose;
     private boolean accidentTravail;
     private LocalDate dateAccident;
+
+    @ManyToOne
+    @JoinColumn(name = "absence_declaration_id", nullable = false)
+    private AbsenceDeclaration absenceDeclaration;
 }

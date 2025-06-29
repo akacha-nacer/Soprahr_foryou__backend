@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import soprahr.foryou_epm_backend.Model.DTO.LoginRequestDTO;
+import soprahr.foryou_epm_backend.Model.DTO.LoginResponseDTO;
 import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Service.Interface.IUserService;
 
@@ -59,11 +61,20 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public User loginUser(@RequestBody User loginRequest) {
+    public ResponseEntity<LoginResponseDTO> loginUser(@RequestBody LoginRequestDTO loginRequest) {
         User user = userService.findUserByIdentifiantAndPassword(loginRequest.getIdentifiant(), loginRequest.getPassword());
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid identifiant or password");
         }
-        return user;
+        LoginResponseDTO response = new LoginResponseDTO(
+                user.getUserID(),
+                user.getFirstname(),
+                user.getLastname(),
+                user.getIdentifiant(),
+                user.getEmail(),
+                user.getRole(),
+                "Login successful"
+        );
+        return ResponseEntity.ok(response);
     }
 }

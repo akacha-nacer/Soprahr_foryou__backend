@@ -10,6 +10,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"team"})
 @Table(name = "app_user")
 public class User {
 
@@ -27,4 +28,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     Role role ;
 
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team;
 }
