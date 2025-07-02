@@ -5,9 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import soprahr.foryou_epm_backend.Exceptions.ResourceNotFoundException;
+import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
 import soprahr.foryou_epm_backend.Model.maladie.AbsenceDeclaration;
 import soprahr.foryou_epm_backend.Model.maladie.Justification;
 import soprahr.foryou_epm_backend.Model.maladie.Notification;
+import soprahr.foryou_epm_backend.Repository.MaladieRepos.NotificationRepository;
 import soprahr.foryou_epm_backend.Service.MaladieService;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -22,10 +25,11 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/maladie")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS}, allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST,RequestMethod.PATCH, RequestMethod.OPTIONS}, allowedHeaders = "*")
 public class MaladieController {
 
     private final MaladieService maladieService;
+    private final NotificationRepository notificationRepository ;
 
     @Value("${upload.dir:uploads}")
     private String uploadDir;
@@ -98,5 +102,26 @@ public class MaladieController {
     @GetMapping("/notifications/manager")
     public ResponseEntity<List<Notification>> getNotificationsForManager(@RequestParam("managerId") Long managerId) {
         return ResponseEntity.ok(maladieService.getNotificationsForManager(managerId));
+    }
+
+
+    @GetMapping("/notifications/retard/{userID}")
+    public Boolean checkIfLateness(@PathVariable Long userID) {
+        return maladieService.checkIfLateness(userID);
+    }
+
+    @GetMapping("/manager/{managerId}/getnotif")
+    public ResponseEntity<List<NotificationDTO>> getNotificationsWithDeclarations(@PathVariable Long managerId) {
+        List<NotificationDTO> notifications = maladieService.getNotificationsWithDeclarationsForManager(managerId);
+        return ResponseEntity.ok(notifications);
+    }
+
+    @PatchMapping("/notifications/{id}/validate")
+    public ResponseEntity<Void> validateNotification(@PathVariable Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        notification.setValidated(true);
+        notificationRepository.save(notification);
+        return ResponseEntity.ok().build();
     }
 }

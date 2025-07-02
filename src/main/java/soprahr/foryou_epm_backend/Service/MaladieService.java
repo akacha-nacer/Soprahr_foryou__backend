@@ -4,6 +4,8 @@ package soprahr.foryou_epm_backend.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import soprahr.foryou_epm_backend.Model.DTO.AbsenceDeclarationDTO;
+import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
 import soprahr.foryou_epm_backend.Model.Team;
 import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Model.maladie.AbsenceDeclaration;
@@ -16,6 +18,7 @@ import soprahr.foryou_epm_backend.Repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +116,46 @@ public class MaladieService {
     }
 
     public List<Notification> getNotificationsForManager(Long managerId) {
-        return notificationRepository.findByRecipientUserID(managerId);
+        return notificationRepository.findByRecipientUserIDAndClotureeFalse(managerId);
+    }
+
+    public Boolean checkIfLateness(Long id){
+        Optional<Notification> notification = notificationRepository.findById(id);
+        return notification.isPresent() && notification.get().isRetard();
+    }
+
+
+    public List<NotificationDTO> getNotificationsWithDeclarationsForManager(Long managerId) {
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new IllegalArgumentException("Manager not found"));
+
+        List<Notification> notifications = notificationRepository.findByRecipientUserIDAndClotureeFalse(managerId);
+
+        return notifications.stream().map(notification -> {
+            NotificationDTO dto = new NotificationDTO();
+            dto.setId(notification.getId());
+            dto.setMessage(notification.getMessage());
+            dto.setRetard(notification.isRetard());
+            dto.setValidated(notification.isValidated());
+            dto.setCloturee(notification.isCloturee());
+            dto.setCreatedAt(notification.getCreatedAt());
+            dto.setEmployeeId(notification.getEmployee().getUserID());
+            dto.setEmployeeName(notification.getEmployee().getFirstname() + " " + notification.getEmployee().getLastname());
+
+            List<AbsenceDeclaration> declarations = absenceDeclarationRepository.findByNotificationId(notification.getId());
+            List<AbsenceDeclarationDTO> declarationDTOs = declarations.stream().map(declaration -> {
+                AbsenceDeclarationDTO declDTO = new AbsenceDeclarationDTO();
+                declDTO.setId(declaration.getId());
+                declDTO.setProlongation(declaration.isProlongation());
+                declDTO.setDateDebut(declaration.getDateDebut());
+                declDTO.setDateFin(declaration.getDateFin());
+                declDTO.setCloturee(declaration.isCloturee());
+                return declDTO;
+            }).collect(Collectors.toList());
+            dto.setAbsenceDeclarations(declarationDTOs);
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

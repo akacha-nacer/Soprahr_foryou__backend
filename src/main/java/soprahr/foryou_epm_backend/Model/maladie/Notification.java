@@ -21,6 +21,8 @@ public class Notification {
     private Long id;
 
     private String message;
+    private boolean retard;
+    private boolean isValidated=false;
     private boolean cloturee = false;
     private LocalDateTime createdAt = LocalDateTime.now();
 
