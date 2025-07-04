@@ -22,6 +22,7 @@ public class AbsenceDeclaration {
     private LocalDate dateDebut;
     private LocalDate dateFin;
     private boolean cloturee = false;
+    private boolean isValidated=false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore

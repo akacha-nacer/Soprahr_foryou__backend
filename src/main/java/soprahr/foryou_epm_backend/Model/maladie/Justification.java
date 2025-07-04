@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model.maladie;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +17,9 @@ public class Justification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String justificatifFileName;
+    @Lob
+    @Column(name = "Justificatif", nullable = false)
+    private byte[] fileContent;
     private boolean originalDepose;
     private boolean accidentTravail;
     private LocalDate dateAccident;

@@ -2,14 +2,20 @@ package soprahr.foryou_epm_backend.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import soprahr.foryou_epm_backend.Exceptions.ResourceNotFoundException;
+import soprahr.foryou_epm_backend.Model.DTO.JustificationDTO;
 import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
 import soprahr.foryou_epm_backend.Model.maladie.AbsenceDeclaration;
 import soprahr.foryou_epm_backend.Model.maladie.Justification;
 import soprahr.foryou_epm_backend.Model.maladie.Notification;
+import soprahr.foryou_epm_backend.Repository.MaladieRepos.AbsenceDeclarationRepository;
+import soprahr.foryou_epm_backend.Repository.MaladieRepos.JustificationRepository;
 import soprahr.foryou_epm_backend.Repository.MaladieRepos.NotificationRepository;
 import soprahr.foryou_epm_backend.Service.MaladieService;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,9 +36,9 @@ public class MaladieController {
 
     private final MaladieService maladieService;
     private final NotificationRepository notificationRepository ;
+    private final JustificationRepository justificationRepository;
+    private final AbsenceDeclarationRepository absenceDeclarationRepository;
 
-    @Value("${upload.dir:uploads}")
-    private String uploadDir;
 
     @PostMapping("/notify")
     public ResponseEntity<Notification> saveNotification(
@@ -65,22 +71,36 @@ public class MaladieController {
             @RequestParam("accidentTravail") boolean accidentTravail,
             @RequestParam(value = "dateAccident", required = false) String dateAccident,
             @RequestParam("absenceDeclarationId") Long absenceDeclarationId) throws IOException {
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+
+        if (justificatif.getSize() > 10 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size exceeds 10MB limit");
         }
-        String fileName = System.currentTimeMillis() + "_" + justificatif.getOriginalFilename();
-        Path filePath = uploadPath.resolve(fileName);
-        justificatif.transferTo(filePath.toFile());
+
+        String contentType = justificatif.getContentType();
+        if (!"application/pdf".equals(contentType) &&
+                !"image/jpeg".equals(contentType) &&
+                !"image/png".equals(contentType)) {
+            throw new IllegalArgumentException("Only PDF, JPG, and PNG files are allowed");
+        }
+
         Justification justification = new Justification();
-        justification.setJustificatifFileName(fileName);
+        justification.setFileContent(justificatif.getBytes());
         justification.setOriginalDepose(originalDepose);
         justification.setAccidentTravail(accidentTravail);
         if (dateAccident != null && !dateAccident.isEmpty()) {
             justification.setDateAccident(LocalDate.parse(dateAccident));
         }
         maladieService.saveJustification(justification, absenceDeclarationId);
-        return ResponseEntity.ok("Justification saved successfully. File: " + fileName);
+        return ResponseEntity.ok("Justification saved successfully in database");
+    }
+
+    @GetMapping("/justify/{id}/file")
+    public ResponseEntity<byte[]> getJustificationFile(@PathVariable Long id) {
+        Justification justification = justificationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Justification not found"));
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=justification_" + id + ".pdf")
+                .body(justification.getFileContent());
     }
 
     @PostMapping("/close")
@@ -116,12 +136,29 @@ public class MaladieController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PatchMapping("/notifications/{id}/validate")
-    public ResponseEntity<Void> validateNotification(@PathVariable Long id) {
-        Notification notification = notificationRepository.findById(id)
+    @PatchMapping("/declaration/{id}/validate")
+    public ResponseEntity<Void> validateDeclaration(@PathVariable Long id) {
+        AbsenceDeclaration declaration = absenceDeclarationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
-        notification.setValidated(true);
-        notificationRepository.save(notification);
+        declaration.setValidated(true);
+        absenceDeclarationRepository.save(declaration);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/justifications/{id}/download")
+    public ResponseEntity<byte[]> downloadJustification(@PathVariable Long id) {
+        Justification justification = justificationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Justification not found"));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"justification_" + id + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(justification.getFileContent());
+    }
+
+    @GetMapping("/test/{id}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Justification>> test(@PathVariable Long id){
+        List<Justification> justifications = justificationRepository.findByAbsenceDeclaration_Id(id);
+        return  ResponseEntity.ok(justifications);
     }
 }

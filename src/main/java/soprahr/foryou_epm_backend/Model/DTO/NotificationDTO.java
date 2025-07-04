@@ -11,11 +11,10 @@ public class NotificationDTO {
     private Long id;
     private String message;
     private boolean retard;
-    @JsonProperty("isValidated")
-    private boolean isValidated=false;
     private boolean cloturee;
     private LocalDateTime createdAt;
     private Long employeeId;
     private String employeeName;
     private List<AbsenceDeclarationDTO> absenceDeclarations;
+
 }
