@@ -2,6 +2,7 @@ package soprahr.foryou_epm_backend.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import soprahr.foryou_epm_backend.Model.maladie.Poste;
 
 @Entity
 @Getter
@@ -24,7 +25,12 @@ public class User {
     String firstname;
     String lastname;
     String identifiant;
+    @Enumerated(EnumType.STRING)
+    Poste poste;
     String email;
+    @Lob
+    @Column(name = "profile_picture")
+    byte[] profilePicture;
     @Enumerated(EnumType.STRING)
     Role role ;
 

@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model.Embauche;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,7 +29,6 @@ public class RenseignementsIndividuels {
     private String numeroInsee;
     private LocalDate dateNaissance;
     private String villeNaissance;
-    private String departementNaissance;
     private String paysNaissance;
     private String etatFamilial;
     private LocalDate dateEffet;
@@ -39,4 +39,9 @@ public class RenseignementsIndividuels {
     @OneToOne
     @JoinColumn(name = "dossier_id")
     private CreerLeDossierDUnePersonne dossier;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @JoinColumn(name = "departement_id")
+    private DepartementNaiss departementNaiss;
 }

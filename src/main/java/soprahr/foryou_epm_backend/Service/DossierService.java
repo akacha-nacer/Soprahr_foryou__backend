@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import soprahr.foryou_epm_backend.Model.DTO.DossierDTO;
 import soprahr.foryou_epm_backend.Model.Embauche.*;
+import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Repository.EmbaucheRepos.*;
+
+import java.util.List;
 
 @Service
 public class DossierService {
@@ -21,6 +24,8 @@ public class DossierService {
     private CarriereRepository carriereRepository;
     @Autowired
     private NationaliteRepository nationaliteRepository;
+    @Autowired
+    private DepartementRepository departementRepository;
 
     @Transactional
     public void saveDossier(DossierDTO dossierDTO) {
@@ -33,7 +38,14 @@ public class DossierService {
 
         RenseignementsIndividuels renseignements = dossierDTO.getRenseignementsIndividuels();
         if (renseignements != null) {
+
             renseignements.setDossier(dossier);
+
+            if (dossierDTO.getDepartementId() != null) {
+                DepartementNaiss departement = departementRepository.findById(dossierDTO.getDepartementId())
+                        .orElseThrow(() -> new RuntimeException("Departement not found with ID: " + dossierDTO.getDepartementId()));
+                renseignements.setDepartementNaiss(departement);
+            }
             renseignements = renseignementsRepository.save(renseignements);
 
             if (renseignements.getNationalites() != null) {
@@ -65,5 +77,13 @@ public class DossierService {
                 carriereRepository.save(carriere);
             }
         }
+    }
+
+    public List<DepartementNaiss> saveDepartementNaiss(List<DepartementNaiss> dep) {
+        return departementRepository.saveAll(dep);
+    }
+
+    public List<DepartementNaiss> RetrieveDepartementNaiss() {
+        return departementRepository.findAll();
     }
 }

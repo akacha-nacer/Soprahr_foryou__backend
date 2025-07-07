@@ -53,10 +53,14 @@ public class MaladieService {
 
     @Transactional
     public AbsenceDeclaration saveAbsenceDeclaration(AbsenceDeclaration absenceDeclaration, Long employeeId, Long notificationId) {
-        // Check if an active absence declaration exists
+
+        Optional<Notification> notification1 = notificationRepository.findById(notificationId);
         Optional<AbsenceDeclaration> existingAbsence = absenceDeclarationRepository.findByEmployeeUserIDAndClotureeFalse(employeeId);
         if (existingAbsence.isPresent()) {
             throw new IllegalStateException("An active absence declaration already exists. Please close it before creating a new one.");
+        }
+        if (notification1.isPresent() && notification1.get().isRetard()){
+            throw new IllegalStateException("the active demand is a lateness notification. Please close it before creating a new one.");
         }
 
         User employee = userRepository.findById(employeeId)
@@ -119,6 +123,8 @@ public class MaladieService {
     public List<Notification> getNotificationsForManager(Long managerId) {
         return notificationRepository.findByRecipientUserIDAndClotureeFalse(managerId);
     }
+
+
 
     public Boolean checkIfLateness(Long id){
         Optional<Notification> notification = notificationRepository.findById(id);
