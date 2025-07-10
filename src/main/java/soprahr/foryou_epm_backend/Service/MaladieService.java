@@ -147,6 +147,7 @@ public class MaladieService {
             dto.setCloturee(notification.isCloturee());
             dto.setCreatedAt(notification.getCreatedAt());
             dto.setEmployeeId(notification.getEmployee().getUserID());
+            dto.setEmployeeIdentifiant(notification.getEmployee().getIdentifiant());
             dto.setEmployeeName(notification.getEmployee().getFirstname() + " " + notification.getEmployee().getLastname());
 
             List<AbsenceDeclaration> declarations = absenceDeclarationRepository.findByNotificationId(notification.getId());

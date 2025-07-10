@@ -15,6 +15,7 @@ public class NotificationDTO {
     private LocalDateTime createdAt;
     private Long employeeId;
     private String employeeName;
+    private String employeeIdentifiant;
     private List<AbsenceDeclarationDTO> absenceDeclarations;
 
 }
