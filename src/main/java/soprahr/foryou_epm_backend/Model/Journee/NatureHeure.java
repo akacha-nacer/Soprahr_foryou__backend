@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import soprahr.foryou_epm_backend.Model.User;
 
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
@@ -27,6 +28,7 @@ public class NatureHeure {
     String duree ;
     Boolean isValidee = false ;
     String commentaire ;
+    LocalDate date = LocalDate.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

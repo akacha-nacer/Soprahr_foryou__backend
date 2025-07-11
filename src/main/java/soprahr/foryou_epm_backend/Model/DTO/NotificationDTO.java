@@ -2,6 +2,9 @@ package soprahr.foryou_epm_backend.Model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import soprahr.foryou_epm_backend.Model.Journee.NatureHeureDeletionRequest;
+import soprahr.foryou_epm_backend.Model.Journee.NatureHeureModificationRequest;
+import soprahr.foryou_epm_backend.Model.Journee.NatureHeureRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,5 +20,8 @@ public class NotificationDTO {
     private String employeeName;
     private String employeeIdentifiant;
     private List<AbsenceDeclarationDTO> absenceDeclarations;
+    private NatureHeureRequest natureHeureRequest;
+    private NatureHeureModificationRequest natureHeureModificationRequest;
+    private NatureHeureDeletionRequest natureHeureDeletionRequest;
 
 }

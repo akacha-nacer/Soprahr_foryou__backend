@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import soprahr.foryou_epm_backend.Model.User;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -25,11 +26,13 @@ public class NatureHeureModificationRequest {
     private LocalTime newHeureFin;
     private String newDuree;
     private String newCommentaire;
+    LocalDate newDate = LocalDate.now();
 
     private boolean approved = false;
     private boolean rejected = false;
 
     private LocalDateTime requestedAt = LocalDateTime.now();
+    private Long requestedById ;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nature_heure_id")

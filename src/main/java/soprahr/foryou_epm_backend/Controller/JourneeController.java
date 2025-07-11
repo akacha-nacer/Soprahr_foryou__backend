@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import soprahr.foryou_epm_backend.Model.DTO.NatureHeureDTO;
+import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
 import soprahr.foryou_epm_backend.Model.Embauche.DepartementNaiss;
-import soprahr.foryou_epm_backend.Model.Journee.Anomalies;
-import soprahr.foryou_epm_backend.Model.Journee.NatureHeure;
-import soprahr.foryou_epm_backend.Model.Journee.NatureHeureModificationRequest;
-import soprahr.foryou_epm_backend.Model.Journee.Pointage;
+import soprahr.foryou_epm_backend.Model.Journee.*;
 import soprahr.foryou_epm_backend.Model.Role;
 import soprahr.foryou_epm_backend.Model.User;
+import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureDeletionRequestRepository;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureModificationRequestRepository;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureRepository;
 import soprahr.foryou_epm_backend.Repository.UserRepository;
@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/journee")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST,RequestMethod.PATCH, RequestMethod.OPTIONS, RequestMethod.PUT}, allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET,RequestMethod.DELETE, RequestMethod.POST,RequestMethod.PATCH, RequestMethod.OPTIONS, RequestMethod.PUT}, allowedHeaders = "*")
 public class JourneeController {
 
     @Autowired
@@ -30,6 +30,7 @@ public class JourneeController {
     private UserRepository userRepository;
     private final NatureHeureRepository natureHeureRepository;
     private final NatureHeureModificationRequestRepository modificationRequestRepo;
+    private final NatureHeureDeletionRequestRepository deletionRequestRepo;
 
 
     @PostMapping("/save_anomalie")
@@ -42,12 +43,24 @@ public class JourneeController {
     }
 
     @PostMapping("/save_nature_heure")
-    public ResponseEntity<String> saveNHeure(@RequestBody NatureHeure natureHeure, @RequestParam("userId") Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
-        natureHeure.setUser(user);
-        journeeService.saveNatureHeure(natureHeure);
-        return ResponseEntity.ok("nature Heure saved successfully");
+    public ResponseEntity<NatureHeureRequest> saveNatureHeure(@RequestBody NatureHeure natureHeure, @RequestParam Long userId) {
+        return ResponseEntity.ok(journeeService.saveNatureHeure(natureHeure, userId));
+    }
+
+    @PostMapping("/approve_nature_heure_request/{requestId}")
+    public ResponseEntity<NatureHeure> approveNatureHeureRequest(@PathVariable Long requestId, @RequestParam Long managerId) {
+        return ResponseEntity.ok(journeeService.approveNatureHeureRequest(requestId, managerId));
+    }
+
+    @PostMapping("/reject_nature_heure_request/{requestId}")
+    public ResponseEntity<Void> rejectNatureHeureRequest(@PathVariable Long requestId, @RequestParam Long managerId) {
+        journeeService.rejectNatureHeureRequest(requestId, managerId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/pending_requests")
+    public ResponseEntity<List<NatureHeureRequest>> getPendingRequests(@RequestParam Long managerId) {
+        return ResponseEntity.ok(journeeService.getPendingRequests(managerId));
     }
 
     @GetMapping("/retrieve-all-NatureHrs")
@@ -66,6 +79,11 @@ public class JourneeController {
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
         List<Anomalies> anomalies = journeeService.getAllUserAnomalies(userId);
         return anomalies;
+    }
+
+    @GetMapping("/pending_modification_requests")
+    public ResponseEntity<List<NatureHeureDTO>> getPendingModificationRequests(@RequestParam Long managerId) {
+        return ResponseEntity.ok(journeeService.getPendingModificationRequests(managerId));
     }
 
     @GetMapping("/retrieve-all-Pointages")
@@ -105,6 +123,7 @@ public class JourneeController {
             request.setNewHeureDebut(updatedNatureHeure.getHeureDebut());
             request.setNewHeureFin(updatedNatureHeure.getHeureFin());
             request.setNewDuree(updatedNatureHeure.getDuree());
+            request.setRequestedById(userId);
             request.setNewCommentaire(updatedNatureHeure.getCommentaire());
 
             NatureHeure original = natureHeureRepository.findById(id)
@@ -135,6 +154,7 @@ public class JourneeController {
         request.setRequestedBy(user);
         request.setApproved(false);
         request.setRejected(false);
+        request.setRequestedById(user.getUserID());
         modificationRequestRepo.save(request);
 
         return ResponseEntity.ok("Modification request submitted.");
@@ -178,4 +198,53 @@ public class JourneeController {
 
         return ResponseEntity.ok("Request approved and NatureHeure updated successfully.");
     }
+
+    @PostMapping("/request_delete_nature_heure/{natureHeureId}")
+    public ResponseEntity<String> requestNatureHeureDeletion(
+            @PathVariable Long natureHeureId,
+            @RequestParam("userId") Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        NatureHeure original = natureHeureRepository.findById(natureHeureId)
+                .orElseThrow(() -> new IllegalArgumentException("NatureHeure not found"));
+
+        NatureHeureDeletionRequest request = new NatureHeureDeletionRequest();
+        request.setOriginalNatureHeure(original);
+        request.setRequestedBy(user);
+        request.setApproved(false);
+        request.setRejected(false);
+        deletionRequestRepo.save(request);
+
+        return ResponseEntity.ok("Deletion request submitted.");
+    }
+
+    @PostMapping("/approve_deletion_request/{requestId}")
+    public ResponseEntity<String> approveDeletionRequest(@PathVariable Long requestId, @RequestParam Long managerId) {
+        journeeService.approveDeletionRequest(requestId, managerId);
+        return ResponseEntity.ok("Deletion request approved and NatureHeure deleted.");
+    }
+
+    @PostMapping("/reject_deletion_request/{requestId}")
+    public ResponseEntity<String> rejectDeletionRequest(@PathVariable Long requestId, @RequestParam Long managerId) {
+        journeeService.rejectDeletionRequest(requestId, managerId);
+        return ResponseEntity.ok("Deletion request rejected.");
+    }
+
+    @GetMapping("/pending_deletion_requests")
+    public ResponseEntity<List<NatureHeureDeletionRequest>> getPendingDeletionRequests(@RequestParam Long managerId) {
+        return ResponseEntity.ok(journeeService.getPendingDeletionRequests(managerId));
+    }
+
+    @DeleteMapping("/delete_nature_heure/{id}")
+    public ResponseEntity<String> deleteNatureHeure(@PathVariable Long id, @RequestParam Long userId) {
+        journeeService.deleteNatureHeure(id, userId);
+        return ResponseEntity.ok("Deletion request submitted or NatureHeure deleted.");
+    }
+
+    @GetMapping("/nature_heure_notifications")
+    public ResponseEntity<List<NotificationDTO>> getNatureHeureNotifications(@RequestParam Long managerId) {
+        return ResponseEntity.ok(journeeService.getNatureHeureNotifications(managerId));
+    }
+
+
 }

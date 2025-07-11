@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import soprahr.foryou_epm_backend.Model.maladie.Poste;
@@ -30,11 +31,12 @@ public class User {
     String email;
     @Lob
     @Column(name = "profile_picture")
+    @JsonIgnore
     byte[] profilePicture;
     @Enumerated(EnumType.STRING)
     Role role ;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
 }
