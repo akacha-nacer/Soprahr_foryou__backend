@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class Team {
 
     @ManyToOne
     @JoinColumn(name = "manager_id", nullable = false)
+    @JsonIgnore
     private User manager;
 
     @OneToMany(mappedBy = "team")

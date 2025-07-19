@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface NatureHeureModificationRequestRepository extends JpaRepository<NatureHeureModificationRequest,Long> {
     List<NatureHeureModificationRequest> findByApprovedFalseAndRejectedFalseAndRequestedByTeamManagerUserID(Long managerId);
+
+    List<NatureHeureModificationRequest> findByOriginalNatureHeureId(Long originalNatureHeureId);
+
 }

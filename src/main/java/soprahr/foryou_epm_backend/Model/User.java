@@ -37,6 +37,7 @@ public class User {
     Role role ;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "team_id")
     private Team team;
 }

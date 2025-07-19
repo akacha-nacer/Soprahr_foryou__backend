@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import soprahr.foryou_epm_backend.Model.DTO.NatureHeureDTO;
+import soprahr.foryou_epm_backend.Model.DTO.NatureHeureDeleteDTO;
 import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
 import soprahr.foryou_epm_backend.Model.Journee.*;
 import soprahr.foryou_epm_backend.Model.Role;
@@ -42,6 +43,7 @@ public class JourneeService {
         return anomaliesRepository.save(anomalies);
     }
 
+    @Transactional
     public NatureHeureRequest saveNatureHeure(NatureHeure natureHeure, Long userId) {
         // Fetch user and validate role
         User user = userRepository.findById(userId)
@@ -127,6 +129,54 @@ public class JourneeService {
 
         request.setStatus("REJECTED");
         natureHeureRequestRepository.save(request);
+    }
+
+    public void rejectNatureHeureModifRequest(Long requestId, Long managerId) {
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new IllegalArgumentException("Manager not found with id: " + managerId));
+        if (manager.getRole() != Role.MANAGER) {
+            throw new IllegalStateException("Only managers can reject requests");
+        }
+
+        NatureHeureModificationRequest request = modificationRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found with id: " + requestId));
+
+
+        request.setRejected(true);
+        request.setApproved(false);
+        modificationRequestRepository.save(request);
+    }
+
+    public NatureHeure approveNatureHeureModifRequest(Long requestId, Long managerId) {
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new IllegalArgumentException("Manager not found with id: " + managerId));
+        if (manager.getRole() != Role.MANAGER) {
+            throw new IllegalStateException("Only managers can approve requests");
+        }
+
+        NatureHeureModificationRequest request = modificationRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found with id: " + requestId));
+
+        User sender = userRepository.findById(request.getRequestedById())
+                .orElseThrow(() -> new IllegalArgumentException("Manager not found with id: " + managerId));
+
+        NatureHeure natureHeure = natureHeureRepository.findById(request.getOriginalNatureHeure().getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Request not found with id: " + requestId));
+        natureHeure.setNature_heure(request.getNewNatureHeure());
+        natureHeure.setHeureDebut(request.getNewHeureDebut());
+        natureHeure.setHeureFin(request.getNewHeureFin());
+        natureHeure.setDuree(request.getNewDuree());
+        natureHeure.setCommentaire(request.getNewCommentaire());
+        natureHeure.setDate(request.getNewDate());
+        natureHeure.setUser(sender);
+        natureHeure.setIsValidee(true);
+
+        NatureHeure saved = natureHeureRepository.save(natureHeure);
+        request.setApproved(true);
+        request.setRejected(false);
+        modificationRequestRepository.save(request);
+
+        return saved;
     }
 
     public NatureHeure approveNatureHeureRequest(Long requestId, Long managerId) {
@@ -232,6 +282,13 @@ public class JourneeService {
             throw new IllegalArgumentException("Original NatureHeure not found for request ID: " + requestId);
         }
         natureHeure.setUser(null);
+        List<NatureHeureModificationRequest> natureHeureModificationRequest = modificationRequestRepository.findByOriginalNatureHeureId(natureHeure.getId());
+        if (natureHeureModificationRequest != null) {
+            natureHeureModificationRequest.stream().forEach(natmodifreq -> {
+                natmodifreq.setOriginalNatureHeure(null);
+                modificationRequestRepository.save(natmodifreq);
+            });
+        }
         request.setOriginalNatureHeure(null);
         natureHeureRepository.delete(natureHeure);
         request.setApproved(true);
@@ -251,7 +308,7 @@ public class JourneeService {
         if (request.isApproved() || request.isRejected()) {
             throw new IllegalStateException("Deletion request is already processed");
         }
-
+        request.setOriginalNatureHeure(null);
         request.setApproved(false);
         request.setRejected(true);
         deletionRequestRepository.save(request);
@@ -271,10 +328,20 @@ public class JourneeService {
         return request;
     }
 
-    public List<NatureHeureDeletionRequest> getPendingDeletionRequests(Long managerId) {
-        return deletionRequestRepository.findAll().stream()
-                .filter(r -> !r.isApproved() && !r.isRejected() && r.getRequestedBy().getTeam().getManager().getUserID().equals(managerId))
-                .collect(Collectors.toList());
+    public List<NatureHeureDeleteDTO> getPendingDeletionRequests(Long managerId) {
+        List<NatureHeureDeletionRequest> natureHeureDeletionRequests = deletionRequestRepository.findByApprovedFalseAndRejectedFalseAndRequestedByTeamManagerUserID(managerId);
+        return  natureHeureDeletionRequests.stream().map(this::mapToDTODel).collect(Collectors.toList());
+
+    }
+
+    private NatureHeureDeleteDTO mapToDTODel(NatureHeureDeletionRequest request) {
+        NatureHeureDeleteDTO dto = new NatureHeureDeleteDTO();
+        dto.setId(request.getId());
+        dto.setId(request.getId());
+        dto.setApproved(request.isApproved());
+        dto.setRejected(request.isRejected());
+        dto.setRequestedById(request.getRequestedBy().getUserID());
+        return dto;
     }
 
 

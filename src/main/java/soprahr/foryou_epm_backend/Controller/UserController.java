@@ -39,8 +39,18 @@ public class UserController {
 
     @GetMapping("/retrieve-User/{id}")
     @ResponseBody
-    public User retrieveUser(@PathVariable("id") Long id) {
-        return userService.retrieveUser(id);
+    public LoginResponseDTO retrieveUser(@PathVariable("id") Long id) {
+        User user = userService.retrieveUser(id);
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setUserID(user.getUserID());
+        loginResponseDTO.setFirstname(user.getFirstname());
+        loginResponseDTO.setLastname(user.getLastname());
+        loginResponseDTO.setIdentifiant(user.getIdentifiant());
+        loginResponseDTO.setRole(user.getRole());
+        loginResponseDTO.setPoste(user.getPoste());
+        loginResponseDTO.setEmail(user.getEmail());
+        return loginResponseDTO ;
+
     }
 
 

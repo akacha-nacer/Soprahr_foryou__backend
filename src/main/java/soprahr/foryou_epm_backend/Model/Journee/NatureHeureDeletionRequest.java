@@ -10,6 +10,8 @@ public class NatureHeureDeletionRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private boolean approved;
+    private boolean rejected;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nature_heure_id")
@@ -19,6 +21,4 @@ public class NatureHeureDeletionRequest {
     @JoinColumn(name = "requested_by_id")
     private User requestedBy;
 
-    private boolean approved;
-    private boolean rejected;
 }
