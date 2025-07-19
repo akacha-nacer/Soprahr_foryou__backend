@@ -8,5 +8,4 @@ import java.util.Optional;
 
 public interface AbsenceDeclarationRepository extends JpaRepository<AbsenceDeclaration, Long> {
     Optional<AbsenceDeclaration> findByEmployeeUserIDAndClotureeFalse(Long employeeId);
-    List<AbsenceDeclaration> findByNotificationId(Long notificationId);
-}
+    List<AbsenceDeclaration> findByNotificationId(Long notificationId);}

@@ -94,6 +94,7 @@ import java.util.logging.Logger;
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<User> getManager(Long userID) {
         Optional<User> user = userRepository.findById(userID);

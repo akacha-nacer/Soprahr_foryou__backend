@@ -23,6 +23,7 @@ public class Notification {
     private String message;
     private boolean retard;
     private boolean cloturee = false;
+    private boolean isValidated=false;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)

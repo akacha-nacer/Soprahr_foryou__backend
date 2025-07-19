@@ -13,7 +13,9 @@ import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.*;
 import soprahr.foryou_epm_backend.Repository.UserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +31,8 @@ public class JourneeService {
     private final NatureHeureRepository natureHeureRepository;
     private final NatureHeureRequestRepository natureHeureRequestRepository;
     private final NatureHeureDeletionRequestRepository deletionRequestRepository;
-    private final NatureHeureModificationRequestRepository modificationRequestRepository; // Added
+    private final NatureHeureModificationRequestRepository modificationRequestRepository;
+    private final ProcessedPointageRepository processedPointageRepository;
 
 
 
@@ -404,5 +407,92 @@ public class JourneeService {
 
 
 
+    @Transactional
+    public List<Anomalies> generateAnomaliesForUser(Long userId, LocalDate date) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        // Fetch unprocessed pointages for the user and date
+        List<Pointage> pointages = pointageRepository.findAllByUserUserIDAndCreatedAt(userId, date)
+                .stream()
+                .filter(p -> !processedPointageRepository.existsByPointageId(p.getId()))
+                .sorted((p1, p2) -> p1.getHeure().compareTo(p2.getHeure()))
+                .collect(Collectors.toList());
+
+        List<Anomalies> anomalies = new ArrayList<>();
+        List<ProcessedPointage> processedPointages = new ArrayList<>();
+
+        if (pointages.isEmpty()) {
+            log.info("No unprocessed pointages for user {} on date {}", userId, date);
+            return anomalies;
+        }
+
+        // Check for consecutive entries of the same type (always process)
+        for (int i = 0; i < pointages.size() - 1; i++) {
+            Pointage current = pointages.get(i);
+            Pointage next = pointages.get(i + 1);
+            if (current.getSens() == next.getSens()) {
+                Anomalies anomaly = new Anomalies();
+                anomaly.setDateAnomalie(date);
+                anomaly.setDetails(String.format("Consecutive %s pointages at %s and %s",
+                        current.getSens(), current.getHeure(), next.getHeure()));
+                anomaly.setPoid(3);
+                anomaly.setUser(user);
+                anomalies.add(anomaly);
+            }
+        }
+
+        // Check for unmatched entry/exit only after 6 PM for current day
+        LocalDate today = LocalDate.now();
+        boolean checkEntryExit = !date.isEqual(today) || LocalTime.now().isAfter(LocalTime.of(18, 0));
+        if (checkEntryExit) {
+            long entryCount = pointages.stream().filter(p -> p.getSens() == Sens.ENTREE).count();
+            long exitCount = pointages.stream().filter(p -> p.getSens() == Sens.SORTIE).count();
+            if (entryCount != exitCount) {
+                Anomalies anomaly = new Anomalies();
+                anomaly.setDateAnomalie(date);
+                anomaly.setDetails(String.format("Mismatch in entry/exit counts: %d entries, %d exits", entryCount, exitCount));
+                anomaly.setPoid(4);
+                anomaly.setUser(user);
+                anomalies.add(anomaly);
+            }
+        } else {
+            log.info("Skipping entry/exit count anomaly check for current day {} until after 6 PM", date);
+        }
+
+        // Save anomalies
+        if (!anomalies.isEmpty()) {
+            anomaliesRepository.saveAll(anomalies);
+            log.info("Generated {} anomalies for user {} on date {}", anomalies.size(), userId, date);
+        }
+
+        // Mark pointages as processed
+        for (Pointage pointage : pointages) {
+            ProcessedPointage processed = new ProcessedPointage();
+            processed.setPointage(pointage);
+            processed.setUser(user);
+            processed.setProcessedDate(date);
+            processedPointages.add(processed);
+        }
+        processedPointageRepository.saveAll(processedPointages);
+
+        return anomalies;
+    }
+
+    @Transactional
+    public List<Anomalies> generateAnomaliesForAllUsers(LocalDate date) {
+        List<User> users = userRepository.findAll();
+        List<Anomalies> allAnomalies = new ArrayList<>();
+        for (User user : users) {
+            allAnomalies.addAll(generateAnomaliesForUser(user.getUserID(), date));
+        }
+        return allAnomalies;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Anomalies> getUserAnomaliesForToday(Long userId) {
+        LocalDate today = LocalDate.now();
+        return anomaliesRepository.findByUserUserIDAndDateAnomalie(userId, today);
+    }
 
 }

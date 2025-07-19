@@ -31,7 +31,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/maladie")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET, RequestMethod.POST,RequestMethod.PATCH, RequestMethod.OPTIONS}, allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200", methods = {RequestMethod.GET,RequestMethod.PUT, RequestMethod.POST,RequestMethod.PATCH, RequestMethod.OPTIONS}, allowedHeaders = "*")
 public class MaladieController {
 
     private final MaladieService maladieService;
@@ -136,12 +136,37 @@ public class MaladieController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PatchMapping("/declaration/{id}/validate")
+    @PutMapping("/declaration/{id}/validate")
     public ResponseEntity<Void> validateDeclaration(@PathVariable Long id) {
         AbsenceDeclaration declaration = absenceDeclarationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        declaration.getNotification().setValidated(true);
         declaration.setValidated(true);
         absenceDeclarationRepository.save(declaration);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @PutMapping("/notification/{id}/refuser")
+    public ResponseEntity<Void> Refuser_fermer_Notif(@PathVariable Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        if (notification.isRetard())
+        {
+            maladieService.closeSickLeave(notification.getEmployee().getUserID());
+            notification.setValidated(true);
+            notificationRepository.save(notification);
+        } else {
+            maladieService.closeSickLeave(notification.getEmployee().getUserID());
+            notification.setValidated(false);
+            List<AbsenceDeclaration> absenceDeclarations =absenceDeclarationRepository.findByNotificationId(notification.getId());
+            if (!absenceDeclarations.isEmpty()){
+                absenceDeclarations.stream().forEach(absenceDeclaration -> {
+                    absenceDeclaration.setValidated(false);
+                    absenceDeclarationRepository.save(absenceDeclaration);
+                });
+            }
+            notificationRepository.save(notification);}
         return ResponseEntity.ok().build();
     }
 

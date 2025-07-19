@@ -9,5 +9,7 @@ public interface NatureHeureModificationRequestRepository extends JpaRepository<
     List<NatureHeureModificationRequest> findByApprovedFalseAndRejectedFalseAndRequestedByTeamManagerUserID(Long managerId);
 
     List<NatureHeureModificationRequest> findByOriginalNatureHeureId(Long originalNatureHeureId);
+    List<NatureHeureModificationRequest> findAllByRequestedById(Long id);
+
 
 }

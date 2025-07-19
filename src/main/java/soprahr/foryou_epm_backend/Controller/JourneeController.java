@@ -14,9 +14,11 @@ import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureDeletionRequestRepository;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureModificationRequestRepository;
 import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureRepository;
+import soprahr.foryou_epm_backend.Repository.JourneeRepos.NatureHeureRequestRepository;
 import soprahr.foryou_epm_backend.Repository.UserRepository;
 import soprahr.foryou_epm_backend.Service.JourneeService;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,7 @@ public class JourneeController {
     private final NatureHeureRepository natureHeureRepository;
     private final NatureHeureModificationRequestRepository modificationRequestRepo;
     private final NatureHeureDeletionRequestRepository deletionRequestRepo;
+    private final NatureHeureRequestRepository natureHeureRequestRepository ;
 
 
     @PostMapping("/save_anomalie")
@@ -85,6 +88,30 @@ public class JourneeController {
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
         List<NatureHeure> natureHeures = journeeService.getAllUserNatureHeures(userId);
         return natureHeures;
+    }
+
+    @GetMapping("/retrieve-all-NatureHrsRequests")
+    @ResponseBody
+    public List<NatureHeureRequest> getNatureHeureRequests(@RequestParam("userId") Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        return natureHeureRequestRepository.findAllByUserUserID(userId);
+    }
+
+    @GetMapping("/retrieve-all-NatureHrsModifRequests")
+    @ResponseBody
+    public List<NatureHeureModificationRequest> getNatureHeureModifRequests(@RequestParam("userId") Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        return modificationRequestRepo.findAllByRequestedById(userId);
+    }
+
+    @GetMapping("/retrieve-all-NatureHrsDelfRequests")
+    @ResponseBody
+    public List<NatureHeureDeletionRequest> getNatureHeureDelRequests(@RequestParam("userId") Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        return deletionRequestRepo.findAllByRequestedBy_UserID(userId);
     }
 
     @GetMapping("/retrieve-all-Anomalies")
@@ -263,5 +290,28 @@ public class JourneeController {
         return ResponseEntity.ok(journeeService.getNatureHeureNotifications(managerId));
     }
 
+
+    @GetMapping("/anomalies/today")
+    public ResponseEntity<List<Anomalies>> getUserAnomaliesForToday(@RequestParam Long userId) {
+        try {
+            List<Anomalies> anomalies = journeeService.getUserAnomaliesForToday(userId);
+            return ResponseEntity.ok(anomalies);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/anomalies/generate/{userId}")
+    public ResponseEntity<List<Anomalies>> generateAnomaliesForUser(
+            @PathVariable Long userId,
+            @RequestParam String date) {
+        try {
+            LocalDate localDate = LocalDate.parse(date);
+            List<Anomalies> anomalies = journeeService.generateAnomaliesForUser(userId, localDate);
+            return ResponseEntity.ok(anomalies);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
 }

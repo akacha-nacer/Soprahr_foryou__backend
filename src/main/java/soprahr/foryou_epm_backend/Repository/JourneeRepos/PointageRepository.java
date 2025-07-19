@@ -5,10 +5,13 @@ import org.springframework.stereotype.Repository;
 import soprahr.foryou_epm_backend.Model.Journee.NatureHeure;
 import soprahr.foryou_epm_backend.Model.Journee.Pointage;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
 @Repository
 public interface PointageRepository extends JpaRepository<Pointage, Long> {
     List<Pointage> findAllByUserUserID(Long id);
+    List<Pointage> findAllByUserUserIDAndCreatedAt(Long userId, LocalDate date);
+
 }

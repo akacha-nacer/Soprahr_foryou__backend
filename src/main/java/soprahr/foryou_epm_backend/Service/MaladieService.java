@@ -97,8 +97,15 @@ public class MaladieService {
 
         if (notification.isPresent()) {
             Notification n = notification.get();
-            n.setCloturee(true);
-            notificationRepository.save(n);
+            if (n.isRetard()){
+                n.setCloturee(true);
+                n.setValidated(true);
+                notificationRepository.save(n);
+            }else {
+                n.setCloturee(true);
+                notificationRepository.save(n);
+            }
+
         }
 
         if (absenceDeclaration.isPresent()) {
