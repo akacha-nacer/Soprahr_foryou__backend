@@ -136,6 +136,14 @@ public class MaladieController {
         return ResponseEntity.ok(notifications);
     }
 
+    @GetMapping("/employee/{employeeId}/getAllnotif")
+    public ResponseEntity<List<NotificationDTO>> getAllNotifications(@PathVariable Long employeeId) {
+        List<NotificationDTO> notifications = maladieService.getAllNotifForUser(employeeId);
+        return ResponseEntity.ok(notifications);
+    }
+
+
+
     @PutMapping("/declaration/{id}/validate")
     public ResponseEntity<Void> validateDeclaration(@PathVariable Long id) {
         AbsenceDeclaration declaration = absenceDeclarationRepository.findById(id)

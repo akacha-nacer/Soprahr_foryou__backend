@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -419,6 +420,9 @@ public class JourneeService {
                 .sorted((p1, p2) -> p1.getHeure().compareTo(p2.getHeure()))
                 .collect(Collectors.toList());
 
+        log.info("Found {} unprocessed pointages for user {} on date {}", pointages.size(), userId, date);
+        pointages.forEach(p -> log.info("Pointage ID: {}, Sens: {}, Heure: {}", p.getId(), p.getSens(), p.getHeure()));
+
         List<Anomalies> anomalies = new ArrayList<>();
         List<ProcessedPointage> processedPointages = new ArrayList<>();
 
@@ -427,18 +431,30 @@ public class JourneeService {
             return anomalies;
         }
 
-        // Check for consecutive entries of the same type (always process)
+        // Check for existing anomalies to avoid duplicates
+        List<Anomalies> existingAnomalies = anomaliesRepository.findByUserUserIDAndDateAnomalie(userId, date);
+        Set<String> existingDetails = existingAnomalies.stream()
+                .map(Anomalies::getDetails)
+                .collect(Collectors.toSet());
+
+        // Check for consecutive entries of the same type
         for (int i = 0; i < pointages.size() - 1; i++) {
             Pointage current = pointages.get(i);
             Pointage next = pointages.get(i + 1);
             if (current.getSens() == next.getSens()) {
-                Anomalies anomaly = new Anomalies();
-                anomaly.setDateAnomalie(date);
-                anomaly.setDetails(String.format("Consecutive %s pointages at %s and %s",
-                        current.getSens(), current.getHeure(), next.getHeure()));
-                anomaly.setPoid(3);
-                anomaly.setUser(user);
-                anomalies.add(anomaly);
+                String anomalyDetail = String.format("Consecutive %s pointages at %s and %s",
+                        current.getSens(), current.getHeure(), next.getHeure());
+                if (!existingDetails.contains(anomalyDetail)) {
+                    Anomalies anomaly = new Anomalies();
+                    anomaly.setDateAnomalie(date);
+                    anomaly.setDetails(anomalyDetail);
+                    anomaly.setPoid(3);
+                    anomaly.setUser(user);
+                    anomalies.add(anomaly);
+                    existingDetails.add(anomalyDetail); // Prevent duplicates in this run
+                } else {
+                    log.info("Skipping duplicate anomaly: {}", anomalyDetail);
+                }
             }
         }
 
@@ -449,24 +465,24 @@ public class JourneeService {
             long entryCount = pointages.stream().filter(p -> p.getSens() == Sens.ENTREE).count();
             long exitCount = pointages.stream().filter(p -> p.getSens() == Sens.SORTIE).count();
             if (entryCount != exitCount) {
-                Anomalies anomaly = new Anomalies();
-                anomaly.setDateAnomalie(date);
-                anomaly.setDetails(String.format("Mismatch in entry/exit counts: %d entries, %d exits", entryCount, exitCount));
-                anomaly.setPoid(4);
-                anomaly.setUser(user);
-                anomalies.add(anomaly);
+                String anomalyDetail = String.format("Mismatch in entry/exit counts: %d entries, %d exits", entryCount, exitCount);
+                if (!existingDetails.contains(anomalyDetail)) {
+                    Anomalies anomaly = new Anomalies();
+                    anomaly.setDateAnomalie(date);
+                    anomaly.setDetails(anomalyDetail);
+                    anomaly.setPoid(4);
+                    anomaly.setUser(user);
+                    anomalies.add(anomaly);
+                    existingDetails.add(anomalyDetail);
+                } else {
+                    log.info("Skipping duplicate anomaly: {}", anomalyDetail);
+                }
             }
         } else {
             log.info("Skipping entry/exit count anomaly check for current day {} until after 6 PM", date);
         }
 
-        // Save anomalies
-        if (!anomalies.isEmpty()) {
-            anomaliesRepository.saveAll(anomalies);
-            log.info("Generated {} anomalies for user {} on date {}", anomalies.size(), userId, date);
-        }
-
-        // Mark pointages as processed
+        // Mark pointages as processed before saving anomalies
         for (Pointage pointage : pointages) {
             ProcessedPointage processed = new ProcessedPointage();
             processed.setPointage(pointage);
@@ -475,6 +491,13 @@ public class JourneeService {
             processedPointages.add(processed);
         }
         processedPointageRepository.saveAll(processedPointages);
+        log.info("Marked {} pointages as processed for user {} on date {}", processedPointages.size(), userId, date);
+
+        // Save anomalies
+        if (!anomalies.isEmpty()) {
+            anomaliesRepository.saveAll(anomalies);
+            log.info("Generated and saved {} new anomalies for user {} on date {}", anomalies.size(), userId, date);
+        }
 
         return anomalies;
     }

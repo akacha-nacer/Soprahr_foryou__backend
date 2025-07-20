@@ -1,9 +1,9 @@
 package soprahr.foryou_epm_backend.Service;
 
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import soprahr.foryou_epm_backend.Model.DTO.AbsenceDeclarationDTO;
 import soprahr.foryou_epm_backend.Model.DTO.JustificationDTO;
 import soprahr.foryou_epm_backend.Model.DTO.NotificationDTO;
@@ -138,6 +138,55 @@ public class MaladieService {
         return notification.isPresent() && notification.get().isRetard();
     }
 
+    @Transactional(readOnly = true)
+    public List<NotificationDTO> getAllNotifForUser(Long userId){
+        List<Notification> notifications = notificationRepository.findAllByEmployeeUserID(userId);
+
+        return notifications.stream().map(notification -> {
+            NotificationDTO dto = new NotificationDTO();
+            dto.setId(notification.getId());
+            dto.setMessage(notification.getMessage());
+            dto.setRetard(notification.isRetard());
+            dto.setCloturee(notification.isCloturee());
+            dto.setCreatedAt(notification.getCreatedAt());
+            dto.setEmployeeId(notification.getEmployee().getUserID());
+            dto.setEmployeeIdentifiant(notification.getEmployee().getIdentifiant());
+            dto.setEmployeeName(notification.getEmployee().getFirstname() + " " + notification.getEmployee().getLastname());
+
+            List<AbsenceDeclaration> declarations = absenceDeclarationRepository.findByNotificationId(notification.getId());
+            List<AbsenceDeclarationDTO> declarationDTOs = declarations.stream().map(declaration -> {
+                AbsenceDeclarationDTO declDTO = new AbsenceDeclarationDTO();
+                declDTO.setId(declaration.getId());
+                declDTO.setProlongation(declaration.isProlongation());
+                declDTO.setDateDebut(declaration.getDateDebut());
+                declDTO.setValidated(declaration.isValidated());
+                declDTO.setDateFin(declaration.getDateFin());
+                declDTO.setCloturee(declaration.isCloturee());
+                List<Justification> justifications = justificationRepository.findByAbsenceDeclaration_Id(declDTO.getId());
+                List<JustificationDTO> justificationDTOs = justifications.stream().map(j -> {
+                    JustificationDTO jDto = new JustificationDTO();
+                    jDto.setId(j.getId());
+                    jDto.setOriginalDepose(j.isOriginalDepose());
+                    jDto.setAccidentTravail(j.isAccidentTravail());
+                    jDto.setDateAccident(j.getDateAccident());
+                    return jDto;
+                }).collect(Collectors.toList());
+                declDTO.setJustifications(justificationDTOs);
+                return declDTO;
+            }).collect(Collectors.toList());
+            dto.setAbsenceDeclarations(declarationDTOs);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+
+
+    public List<AbsenceDeclaration> getAllDecForUser(Long userId){
+        return absenceDeclarationRepository.findAllByEmployeeUserID(userId);
+    }
+
+
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationsWithDeclarationsForManager(Long managerId) {
@@ -183,4 +232,6 @@ public class MaladieService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+
 }
