@@ -22,6 +22,12 @@ public class DossierController {
         return ResponseEntity.ok("File saved successfully");
     }
 
+    @GetMapping("/get_dossiers")
+    public ResponseEntity<List<DossierDTO>> getAllDossiers() {
+        List<DossierDTO> dossiers = dossierService.getAllDossier();
+        return ResponseEntity.ok(dossiers);
+    }
+
     @PostMapping("/save_dep")
     public ResponseEntity<String> saveDepartementNaiss(@RequestBody List<DepartementNaiss> dep) {
         dossierService.saveDepartementNaiss(dep);

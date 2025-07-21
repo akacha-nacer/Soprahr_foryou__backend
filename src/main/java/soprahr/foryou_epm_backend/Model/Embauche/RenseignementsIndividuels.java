@@ -1,6 +1,8 @@
 package soprahr.foryou_epm_backend.Model.Embauche;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,10 +36,12 @@ public class RenseignementsIndividuels {
     private LocalDate dateEffet;
 
     @OneToMany(mappedBy = "renseignements", cascade = CascadeType.ALL)
+    @JsonManagedReference(value = "renseignements-nationalites")
     private List<Nationalite> nationalites;
 
     @OneToOne
     @JoinColumn(name = "dossier_id")
+    @JsonBackReference(value = "dossier-renseignements")
     private CreerLeDossierDUnePersonne dossier;
 
     @OneToOne(fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model.Embauche;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,10 +28,10 @@ public class Affectations {
     private Boolean indexe;
     private String modaliteGestion;
 
-    private LocalDate startDate;
-    private LocalDate endDate;
+
 
     @ManyToOne
     @JoinColumn(name = "dossier_id")
+    @JsonBackReference(value = "dossier-affectations")
     private CreerLeDossierDUnePersonne dossier;
 }

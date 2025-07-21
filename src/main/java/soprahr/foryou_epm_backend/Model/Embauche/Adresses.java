@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model.Embauche;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,5 +34,6 @@ public class Adresses {
 
     @ManyToOne
     @JoinColumn(name = "dossier_id")
+    @JsonBackReference(value = "dossier-adresses")
     private CreerLeDossierDUnePersonne dossier;
 }

@@ -13,6 +13,8 @@ public class DossierDTO {
     private String etablissement;
     private String matriculeSalarie;
     private Long departementId;
+    private String departementLibelle;
+    private LocalDate dateCreation ;
 
     private RenseignementsIndividuels renseignementsIndividuels;
     private List<Adresses> adresses;

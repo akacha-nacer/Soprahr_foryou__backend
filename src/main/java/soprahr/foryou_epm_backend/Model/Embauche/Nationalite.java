@@ -1,5 +1,6 @@
 package soprahr.foryou_epm_backend.Model.Embauche;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,5 +21,6 @@ public class Nationalite {
 
     @ManyToOne
     @JoinColumn(name = "renseignements_id")
+    @JsonBackReference(value = "renseignements-nationalites")
     private RenseignementsIndividuels renseignements;
 }

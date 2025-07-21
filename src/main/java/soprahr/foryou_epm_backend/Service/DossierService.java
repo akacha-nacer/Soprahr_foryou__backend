@@ -1,14 +1,16 @@
 package soprahr.foryou_epm_backend.Service;
 
-import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import soprahr.foryou_epm_backend.Model.DTO.DossierDTO;
 import soprahr.foryou_epm_backend.Model.Embauche.*;
 import soprahr.foryou_epm_backend.Model.User;
 import soprahr.foryou_epm_backend.Repository.EmbaucheRepos.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DossierService {
@@ -26,6 +28,45 @@ public class DossierService {
     private NationaliteRepository nationaliteRepository;
     @Autowired
     private DepartementRepository departementRepository;
+
+
+    @Transactional(readOnly = true)
+    public List<DossierDTO> getAllDossier() {
+        List<CreerLeDossierDUnePersonne> dossiers = dossierRepository.findAll();
+
+        return dossiers.stream().map(dossier -> {
+            DossierDTO dto = new DossierDTO();
+
+            dto.setDateRecrutement(dossier.getDateRecrutement());
+            dto.setCodeSociete(dossier.getCodeSociete());
+            dto.setEtablissement(dossier.getEtablissement());
+            dto.setMatriculeSalarie(dossier.getMatriculeSalarie());
+            dto.setDateCreation(dossier.getDateCreation());
+
+
+            RenseignementsIndividuels renseignements = dossier.getRenseignementsIndividuels();
+            if (renseignements != null) {
+
+                renseignements.getNationalites().size();
+                dto.setRenseignementsIndividuels(renseignements);
+
+
+                DepartementNaiss departement = renseignements.getDepartementNaiss();
+                if (departement != null) {
+                    dto.setDepartementId(departement.getId());
+                    dto.setDepartementLibelle(departement.getLibelle());
+                }
+            }
+
+
+            dto.setAdresses(dossier.getAdresses());
+            dto.setAffectations(dossier.getAffectations());
+            dto.setCarriere(dossier.getCarriere());
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 
     @Transactional
     public void saveDossier(DossierDTO dossierDTO) {

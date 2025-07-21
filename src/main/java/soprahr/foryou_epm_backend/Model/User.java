@@ -3,6 +3,8 @@ package soprahr.foryou_epm_backend.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import soprahr.foryou_epm_backend.Model.Embauche.CreerLeDossierDUnePersonne;
+import soprahr.foryou_epm_backend.Model.Embauche.RenseignementsIndividuels;
 import soprahr.foryou_epm_backend.Model.maladie.Poste;
 
 @Entity
@@ -40,4 +42,7 @@ public class User {
     @JsonIgnore
     @JoinColumn(name = "team_id")
     private Team team;
+
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+    private CreerLeDossierDUnePersonne creerLeDossierDUnePersonne;
 }
