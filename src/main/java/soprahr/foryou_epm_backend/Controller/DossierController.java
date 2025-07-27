@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import soprahr.foryou_epm_backend.Model.DTO.DossierDTO;
 import soprahr.foryou_epm_backend.Model.Embauche.DepartementNaiss;
 import soprahr.foryou_epm_backend.Service.DossierService;
+import soprahr.foryou_epm_backend.Service.OpenAiService;
 
 import java.util.List;
 
@@ -15,6 +16,21 @@ import java.util.List;
 public class DossierController {
     @Autowired
     private DossierService dossierService;
+    @Autowired
+    private  OpenAiService openAiService;
+
+
+
+    @GetMapping("/api/field-explanation")
+    public ResponseEntity<String> getFieldExplanation(@RequestParam("fieldName") String fieldName) {
+        try {
+            String explanation = openAiService.getFieldExplanation(fieldName);
+            return ResponseEntity.ok(explanation);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erreur lors de la génération de l'explication pour le champ: " + fieldName);
+        }
+    }
+
 
     @PostMapping("/save_emb")
     public ResponseEntity<String> saveDossier(@RequestBody DossierDTO dossierDTO) {
